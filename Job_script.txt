@@ -1,0 +1,113 @@
+import redshift_connector
+
+HOST = "my-redshift-cluster.csrolwaxiqip.ap-southeast-2.redshift.amazonaws.com"
+PORT = "5439"
+DATABASE = 'dev'
+USER = "awsuser"
+PASSWORD = "Nguyencuong7134"
+
+
+conn = redshift_connector.connect(
+    host=HOST,
+    port=PORT,
+    database=DATABASE,
+    user=USER,
+    password=PASSWORD
+ )
+ 
+ conn.autocommit = True
+ cursor = conn.cursor()
+ 
+cursor.execute("""
+CREATE TABLE "dimDate" (
+    "index" INTEGER,
+    "fips" INTEGER,
+    "date" TIMESTAMP,
+    "month" INTEGER,
+    "year" INTEGER,
+    "is_weekend" INTEGER
+)
+""")
+
+cursor.execute("""
+CREATE TABLE "factCovid" (
+  "index" INTEGER,
+  "fips" REAL,
+  "province_state" TEXT,
+  "country_region" TEXT,
+  "confirmed" REAL,
+  "deaths" REAL,
+  "recovered" REAL,
+  "active" REAL,
+  "date" INTEGER,
+  "positive" REAL,
+  "negative" REAL,
+  "hospitalizedcurrently" REAL,
+  "hospitalized" REAL,
+  "hospitalizeddischarged" REAL
+)
+""")
+
+cursor.execute("""
+CREATE TABLE "dimHospital" (
+  "index" INTEGER,
+  "fips" REAL,
+  "state_name" TEXT,
+  "latitude" REAL,
+  "longtitude" REAL,
+  "hq_address" TEXT,
+  "hospital_type" TEXT,
+  "hospital_name" TEXT,
+  "hq_city" TEXT,
+  "hq_state" TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE "dimRegion" (
+  "index" INTEGER,
+  "fips" REAL,
+  "province_state" TEXT,
+  "country_region" TEXT,
+  "latitude" REAL,
+  "longitude" REAL,
+  "county" TEXT,
+  "state" TEXT
+)
+""")
+
+cursor.execute("""
+COPY dimDate 
+FROM 's3://emsicuong-covid-de-project/output/dimDate.csv'
+credentials 'aws_iam_role=arn:aws:iam::794982890746:role/redshift-s3'
+delimiter ','
+region 'ap-southeast-2'
+IGNOREHEADER 1
+""")
+
+cursor.execute("""
+COPY factCovid 
+FROM 's3://emsicuong-covid-de-project/output/factCovid.csv'
+credentials 'aws_iam_role=arn:aws:iam::794982890746:role/redshift-s3'
+delimiter ','
+region 'ap-southeast-2'
+IGNOREHEADER 1
+""")
+
+cursor.execute("""
+COPY dimHospital 
+FROM 's3://emsicuong-covid-de-project/output/dimHospital.csv'
+credentials 'aws_iam_role=arn:aws:iam::794982890746:role/redshift-s3'
+delimiter ','
+region 'ap-southeast-2'
+IGNOREHEADER 1
+""")
+
+cursor.execute("""
+COPY dimRegion 
+FROM 's3://emsicuong-covid-de-project/output/dimRegion.csv'
+credentials 'aws_iam_role=arn:aws:iam::794982890746:role/redshift-s3'
+delimiter ','
+region 'ap-southeast-2'
+IGNOREHEADER 1
+""")

@@ -1,0 +1,6 @@
+- relational data model
+- connect to athena and query data
+- ETL job in python
+- save result to S3
+- build tables on redshift
+- copy data to redshidt
